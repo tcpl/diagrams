@@ -39,3 +39,4 @@ jobs:
           make build
           docker tag $IMAGE_NAME $REGISTRY/$IMAGE_NAME:$TAG
           docker push $REGISTRY/$IMAGE_NAME:$TAG
+          docker push $REGISTRY/$IMAGE_NAME
