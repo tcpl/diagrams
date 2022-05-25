@@ -1,0 +1,41 @@
+on:
+  push:
+    branches: master
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: tag
+        id: tag
+        uses: tcpl/semver-tag-creator-action@1.2.14
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: build
+        env:
+          TAG: ${{ steps.tag.outputs.version }}
+        run: |
+          make build
+          docker tag $IMAGE_NAME $REGISTRY/$IMAGE_NAME:$TAG
+          docker push $REGISTRY/$IMAGE_NAME:$TAG
